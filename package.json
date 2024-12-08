@@ -1,0 +1,40 @@
+{
+  "name": "charlady",
+  "version": "1.0.0",
+  "description": "Domestic worker management platform",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "webpack --config webpack.config.js",
+    "build:server": "babel src -d dist",
+    "test": "jest",
+    "lint": "eslint src/**/*.js",
+    "deploy": "firebase deploy"
+  },
+  "dependencies": {
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "firebase-admin": "^11.0.0",
+    "helmet": "^4.6.0",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.32.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.0",
+    "@babel/core": "^7.17.0",
+    "@babel/preset-env": "^7.16.11",
+    "babel-loader": "^8.2.3",
+    "eslint": "^8.8.0",
+    "jest": "^27.5.1",
+    "nodemon": "^2.0.15",
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 

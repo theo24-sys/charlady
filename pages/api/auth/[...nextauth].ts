@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { Pool } from "pg";
 import { compare } from "bcrypt";
@@ -8,7 +8,17 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
-export default NextAuth({
+// Define a User type for TypeScript
+interface User {
+  id: number;
+  email: string;
+  password: string;
+  role: string;
+  name: string;
+  isverified: boolean;
+}
+
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -20,7 +30,7 @@ export default NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const { rows } = await pool.query("SELECT * FROM Users WHERE email = $1", [
+          const { rows } = await pool.query<User>("SELECT * FROM Users WHERE email = $1", [
             credentials.email,
           ]);
           const user = rows[0];
@@ -30,7 +40,7 @@ export default NextAuth({
           const isValid = await compare(credentials.password, user.password);
           if (!isValid) return null;
 
-          return { id: user.id, email: user.email, role: user.role, name: user.name };
+          return { id: String(user.id), email: user.email, role: user.role, name: user.name };
         } catch (error) {
           console.error("Error querying the database:", error);
           return null;
@@ -56,7 +66,7 @@ export default NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      const role = url.split("role=")[1] || "employer";
+      const role = new URL(url).searchParams.get("role") || "employer"; // Default to 'employer'
       return `${baseUrl}/dashboard/${role}`;
     },
   },
@@ -66,4 +76,6 @@ export default NextAuth({
     error: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
-});
+};
+
+export default NextAuth(authOptions);

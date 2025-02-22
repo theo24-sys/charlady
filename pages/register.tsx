@@ -14,6 +14,7 @@ export default function Register() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+
         // Basic validation
         if (!/^[a-zA-Z\s]{2,}$/.test(name)) {
             setError("Name must be at least 2 characters and contain only letters.");
@@ -49,8 +50,9 @@ export default function Register() {
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Name</label>
+                        <label htmlFor="name" className="block text-gray-700">Name</label>
                         <input
+                            id="name"
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
@@ -59,8 +61,9 @@ export default function Register() {
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Email</label>
+                        <label htmlFor="email" className="block text-gray-700">Email</label>
                         <input
+                            id="email"
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -69,8 +72,9 @@ export default function Register() {
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Password</label>
+                        <label htmlFor="password" className="block text-gray-700">Password</label>
                         <input
+                            id="password"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -79,8 +83,9 @@ export default function Register() {
                         />
                     </div>
                     <div className="mb-6">
-                        <label className="block text-gray-700">I am a:</label>
+                        <label htmlFor="role" className="block text-gray-700">I am a:</label>
                         <select
+                            id="role"
                             value={role}
                             onChange={(e) => setRole(e.target.value as "employer" | "housekeeper")}
                             className="w-full p-2 mt-1 border rounded-md"
@@ -106,5 +111,3 @@ export default function Register() {
         </div>
     );
 }
-<div className="bg-white p-4 md:p-8 rounded-lg shadow-md w-full max-w-md">
-<h1 className="text-2xl md:text-3xl font-semibold text-pastelPurple mb-6 text-center"></h1>

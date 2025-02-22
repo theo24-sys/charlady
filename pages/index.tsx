@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 
+
 export default function Home() {
   return (
+    
     <div className="min-h-screen bg-softPink flex flex-col items-center">
       <header className="w-full bg-pastelPurple py-6 text-center">
         <h1 className="text-4xl font-semibold text-white">CHARLADY Kenya</h1>
@@ -44,7 +46,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row gap-4 justify-center">
           <div className="relative w-full md:w-1/2 h-64">
             <Image
-              src="/nanny1.jpg"
+              src="/nanny1.webp"
               alt="Nanny caring for a child"
               layout="fill"
               objectFit="cover"
@@ -53,7 +55,7 @@ export default function Home() {
           </div>
           <div className="relative w-full md:w-1/2 h-64">
             <Image
-              src="/housekeeper1.jpg"
+              src="/housekeeper1.jpeg"
               alt="Housekeeper cleaning"
               layout="fill"
               objectFit="cover"

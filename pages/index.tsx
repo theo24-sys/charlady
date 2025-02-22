@@ -4,10 +4,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-softPink flex flex-col items-center py-10 px-4">
       <h1 className="text-4xl md:text-5xl font-bold text-pastelPurple text-center">
-        Welcome to Nannies Kenya
+        Welcome to CHARLADY Kenya
       </h1>
       <p className="text-lg text-gray-700 mt-4 text-center max-w-2xl">
-        Connecting trusted housekeepers and nannies with employers in Kenya.
+        Connecting trusted housekeepers, mama fua and nannies with employers in Kenya.
       </p>
 
       {/* Services Section */}
@@ -27,7 +27,7 @@ export default function Home() {
       {/* Captivating Images */}
       <div className="mt-10 flex flex-wrap justify-center gap-4">
         <Image
-          src="/nanny1.jpg"
+          src="/nanny1.webp"
           alt="Nanny"
           width={300}
           height={200}
@@ -35,7 +35,7 @@ export default function Home() {
           priority
         />
         <Image
-          src="/housekeeper1.jpg"
+          src="/housekeeper1.jpeg"
           alt="Housekeeper"
           width={300}
           height={200}
@@ -46,7 +46,7 @@ export default function Home() {
 
       {/* Footer / Extra Section */}
       <h1 className="text-2xl md:text-4xl font-semibold text-white mt-10">
-        Nannies Kenya
+        Charlady Kenya
       </h1>
     </div>
   );

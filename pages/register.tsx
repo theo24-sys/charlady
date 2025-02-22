@@ -91,3 +91,31 @@ export default function Register() {
     </div>
   );
 }
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    // Basic validation
+    if (!/^[a-zA-Z\s]{2,}$/.test(name)) {
+      setError("Name must be at least 2 characters and contain only letters.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Invalid email format.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+  
+    try {
+      const hashedPassword = await hash(password, 10);
+      await query(
+        "INSERT INTO Users (email, password, name, role) VALUES ($1, $2, $3, $4)",
+        [email, hashedPassword, name, role]
+      );
+      router.push("/login");
+    } catch (err) {
+      setError("Registration failed. Email might already exist.");
+    }
+  };

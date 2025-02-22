@@ -66,4 +66,26 @@ export default function Login() {
       </div>
     </div>
   );
-}
+}const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Invalid email format.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+  
+    const res = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
+    if (res?.error) {
+      setError("Invalid credentials or account not verified.");
+    } else {
+      router.push("/dashboard/employer");
+    }
+  };

@@ -2,31 +2,52 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-softPink flex flex-col items-center py-10">
-      <h1 className="text-4xl font-bold text-pastelPurple">Welcome to Nannies Kenya</h1>
-      <p className="text-lg text-gray-700 mt-4">Connecting trusted housekeepers and nannies with employers in Kenya.</p>
-      
+    <div className="min-h-screen bg-softPink flex flex-col items-center py-10 px-4">
+      <h1 className="text-4xl md:text-5xl font-bold text-pastelPurple text-center">
+        Welcome to Nannies Kenya
+      </h1>
+      <p className="text-lg text-gray-700 mt-4 text-center max-w-2xl">
+        Connecting trusted housekeepers and nannies with employers in Kenya.
+      </p>
+
       {/* Services Section */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-warmPeach">Job Posting</h2>
-          <p>Employers post nanny or housekeeping jobs easily.</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-warmPeach">Apply with Ease</h2>
-          <p>Housekeepers apply to jobs that suit them.</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-warmPeach">Verified & Safe</h2>
-          <p>All users and jobs are admin-verified.</p>
-        </div>
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-5xl">
+        {[
+          { title: "Job Posting", desc: "Employers post nanny or housekeeping jobs easily." },
+          { title: "Apply with Ease", desc: "Housekeepers apply to jobs that suit them." },
+          { title: "Verified & Safe", desc: "All users and jobs are admin-verified." },
+        ].map((service, index) => (
+          <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center">
+            <h2 className="text-xl font-semibold text-warmPeach">{service.title}</h2>
+            <p className="text-gray-700 mt-2">{service.desc}</p>
+          </div>
+        ))}
       </div>
 
       {/* Captivating Images */}
-      <div className="mt-10 flex gap-4">
-        <Image src="/nanny1.jpg" alt="Nanny" width={300} height={200} className="rounded-lg" />
-        <Image src="/housekeeper1.jpg" alt="Housekeeper" width={300} height={200} className="rounded-lg" />
+      <div className="mt-10 flex flex-wrap justify-center gap-4">
+        <Image
+          src="/nanny1.jpg"
+          alt="Nanny"
+          width={300}
+          height={200}
+          className="rounded-lg"
+          priority
+        />
+        <Image
+          src="/housekeeper1.jpg"
+          alt="Housekeeper"
+          width={300}
+          height={200}
+          className="rounded-lg"
+          priority
+        />
       </div>
+
+      {/* Footer / Extra Section */}
+      <h1 className="text-2xl md:text-4xl font-semibold text-white mt-10">
+        Nannies Kenya
+      </h1>
     </div>
   );
 }

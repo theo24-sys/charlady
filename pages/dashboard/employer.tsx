@@ -1,37 +1,48 @@
 import { useSession, signOut } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { query } from "../../lib/db";
+import { rateLimit } from "../../lib/rateLimit";
+
+interface Job {
+  id: number;
+  title: string;
+  description: string;
+  location: string;
+  salary: string | null;
+  status: string;
+  isverified: boolean;
+}
 
 export default function EmployerDashboard() {
   const { data: session, status } = useSession();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [salary, setSalary] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [postedJobs, setPostedJobs] = useState<Job[]>([]);
 
-  if (status === "loading") return <p>Loading...</p>;
-  if (status === "unauthenticated" || session?.user.role !== "employer") {
-    return <p className="text-center mt-10">Access Denied</p>;
-  }
+  useEffect(() => {
+    const fetchJobs = async () => {
+      if (!session) return;
+      try {
+        const { rows } = await query("SELECT * FROM Jobs WHERE employerId = $1", [
+          session.user.id,
+        ]);
+        setPostedJobs(rows);
+      } catch (err) {
+        setError("Failed to fetch jobs.");
+      }
+    };
+    if (session) fetchJobs();
+  }, [session]);
 
-  return (
-    <div className="min-h-screen bg-softPink p-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-semibold text-pastelPurple">
-            Employer Dashboard
-          </h1>
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="bg-warmPeach text-white px-4 py-2 rounded-full hover:bg-pastelPurple"
-          >
-            Log Out
-          </button>
-        </div>
-        <p>Welcome, {session.user.email}!</p>
-        {/* TODO: Add job posting form */}
-      </div>
-    </div>
-  );
-}
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+
     if (title.length < 3) {
       setError("Job title must be at least 3 characters.");
       return;
@@ -48,11 +59,19 @@ const handleSubmit = async (e: React.FormEvent) => {
       setError("Salary must be a positive number.");
       return;
     }
-  
+
+    if (session) {
+      const { allowed, retryAfter } = await rateLimit(session.user.id, 5, 3600);
+      if (!allowed) {
+        setError(`Rate limit exceeded. Try again in ${retryAfter} seconds.`);
+        return;
+      }
+    }
+
     try {
       await query(
         "INSERT INTO Jobs (employerId, title, description, location, salary) VALUES ($1, $2, $3, $4, $5)",
-        [session.user.id, title, description, location, salary || null]
+        [session?.user.id, title, description, location, salary || null]
       );
       setSuccess("Job posted successfully! Awaiting admin verification.");
       setTitle("");
@@ -62,41 +81,100 @@ const handleSubmit = async (e: React.FormEvent) => {
     } catch (err) {
       setError("Failed to post job. Please try again.");
     }
-  };import { rateLimit } from "../../lib/rateLimit";
-
-  // Inside handleSubmit, before the query:
-  const { allowed, retryAfter } = await rateLimit(session.user.id, 5, 3600); // 5 requests per hour
-  if (!allowed) {
-    setError(`Rate limit exceeded. Try again in ${retryAfter} seconds.`);
-    return;
-  }
-  // Add after useState declarations:
-const [postedJobs, setPostedJobs] = useState<any[]>([]);
-
-useEffect(() => {
-  const fetchJobs = async () => {
-    const { rows } = await query("SELECT * FROM Jobs WHERE employerId = $1", [
-      session.user.id,
-    ]);
-    setPostedJobs(rows);
   };
-  if (session) fetchJobs();
-}, [session]);
 
-// Add after the form in the return:
-<div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-  <h2 className="text-2xl font-semibold text-pastelPurple mb-4">Your Posted Jobs</h2>
-  {postedJobs.length === 0 ? (
-    <p>No jobs posted yet.</p>
-  ) : (
-    <ul className="space-y-4">
-      {postedJobs.map((job) => (
-        <li key={job.id} className="border p-4 rounded-md">
-          <h3 className="text-xl font-semibold text-warmPeach">{job.title}</h3>
-          <p>Status: {job.status}{job.isverified ? " (Verified)" : " (Pending Verification)"}</p>
-          <p>{job.description}</p>
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+  if (status === "loading") return <p>Loading...</p>;
+  if (status === "unauthenticated" || session?.user.role !== "employer") {
+    return <p className="text-center mt-10">Access Denied</p>;
+  }
+
+  return (
+    <div className="min-h-screen bg-softPink p-6">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-semibold text-pastelPurple">Employer Dashboard</h1>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="bg-warmPeach text-white px-4 py-2 rounded-full hover:bg-pastelPurple"
+          >
+            Log Out
+          </button>
+        </div>
+        <p>Welcome, {session?.user.email}!</p>
+
+        {/* Job Posting Form */}
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+          {error && <p className="text-red-500">{error}</p>}
+          {success && <p className="text-green-500">{success}</p>}
+
+          <div className="mb-4">
+            <label className="block text-gray-700">Job Title:</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">Description:</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">Location:</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">Salary (optional):</label>
+            <input
+              type="text"
+              value={salary}
+              onChange={(e) => setSalary(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="bg-pastelPurple text-white px-4 py-2 rounded-full hover:bg-warmPeach"
+          >
+            Post Job
+          </button>
+        </form>
+
+        {/* Posted Jobs List */}
+        <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold text-pastelPurple mb-4">Your Posted Jobs</h2>
+          {postedJobs.length === 0 ? (
+            <p>No jobs posted yet.</p>
+          ) : (
+            <ul className="space-y-4">
+              {postedJobs.map((job) => (
+                <li key={job.id} className="border p-4 rounded-md">
+                  <h3 className="text-xl font-semibold text-warmPeach">{job.title}</h3>
+                  <p>Status: {job.status} {job.isverified ? "(Verified)" : "(Pending Verification)"}</p>
+                  <p>{job.description}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

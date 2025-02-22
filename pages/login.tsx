@@ -10,15 +10,37 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Invalid email format.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     const res = await signIn("credentials", {
       redirect: false,
       email,
       password,
     });
+
     if (res?.error) {
       setError("Invalid credentials or account not verified.");
     } else {
-      router.push("/dashboard/employer"); // NextAuth redirect will override this
+      // Redirect dynamically based on role (assuming you store user role in session)
+      const userRes = await fetch("/api/auth/session");
+      const userData = await userRes.json();
+
+      if (userData?.user?.role === "employer") {
+        router.push("/dashboard/employer");
+      } else if (userData?.user?.role === "housekeeper") {
+        router.push("/dashboard/housekeeper");
+      } else {
+        router.push("/dashboard");
+      }
     }
   };
 
@@ -66,26 +88,4 @@ export default function Login() {
       </div>
     </div>
   );
-}const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Invalid email format.");
-      return;
-    }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-  
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
-    if (res?.error) {
-      setError("Invalid credentials or account not verified.");
-    } else {
-      router.push("/dashboard/employer");
-    }
-  };
+}

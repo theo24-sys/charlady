@@ -1,35 +1,37 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { Pool } from "pg";
-import { compare } from "bcrypt"; // For password hashing comparison
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-});
+import { compare } from "bcrypt"; 
+import { pool } from "../../../lib/db"; // Use a shared DB connection
 
 export default NextAuth({
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email", type: "email", placeholder: "example@mail.com" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Both email and password are required.");
+        }
 
-        const { rows } = await pool.query("SELECT * FROM Users WHERE email = $1", [
-          credentials.email,
-        ]);
-        const user = rows[0];
+        try {
+          const { rows } = await pool.query("SELECT * FROM Users WHERE email = $1", [
+            credentials.email,
+          ]);
 
-        if (!user || !user.isverified) return null;
+          const user = rows[0];
+          if (!user) throw new Error("No user found with this email.");
+          if (!user.is_verified) throw new Error("Please verify your email before logging in.");
 
-        const isValid = await compare(credentials.password, user.password); // Assumes hashed passwords
-        if (!isValid) return null;
+          const isValid = await compare(credentials.password, user.password);
+          if (!isValid) throw new Error("Invalid credentials.");
 
-        return { id: user.id, email: user.email, role: user.role };
+          return { id: user.id, email: user.email, role: user.role };
+        } catch (error) {
+          throw new Error("Authentication failed.");
+        }
       },
     }),
   ],
@@ -42,20 +44,20 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.role = token.role as string;
+      session.user = {
+        id: token.id,
+        email: token.email,
+        role: token.role,
+      };
       return session;
     },
-    async redirect({ url, baseUrl }) {
-      // Redirect to role-specific dashboard after login
-      const role = url.split("role=")[1] || "employer"; // Fallback to employer
-      return `${baseUrl}/dashboard/${role}`;
+    async redirect({ baseUrl }) {
+      return `${baseUrl}/dashboard`;
     },
   },
   pages: {
     signIn: "/login",
-    signOut: "/login",
-    error: "/login", // Redirect to login on error
+    error: "/login?error=true", // Pass error state
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
